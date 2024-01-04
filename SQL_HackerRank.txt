@@ -1,0 +1,96 @@
+Two pairs (X1, Y1) and (X2, Y2) are said to be symmetric pairs if X1 = Y2 and X2 = Y1.
+Write a query to output all such symmetric pairs in ascending order by the value of X. List the rows such that X1 ≤ Y1.
+
+SELECT T1.X, T1.Y FROM Functions T1 
+INNER JOIN Functions T2 on T1.X=T2.Y AND T1.Y=T2.X 
+GROUP BY T1.X , T1.Y HAVING COUNT(1)>1 
+OR T1.X<T1.Y 
+ORDER BY T1.X ASC
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+You are given three tables: Students, Friends and Packages. Students contains two columns: ID and Name. 
+Friends contains two columns: ID and Friend_ID (ID of the ONLY best friend). 
+Packages contains two columns: ID and Salary (offered salary in $ thousands per month).
+
+SELECT s.Name FROM Friends f 
+INNER JOIN Packages p ON f.ID=p.ID 
+INNER JOIN packages fp on f.Friend_ID=fp.ID 
+INNER JOIN Students s ON s.ID=f.ID 
+WHERE p.Salary<fp.Salary 
+ORDER BY fp.Salary
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT C1.contest_id, C1.hacker_id, C1.name, SUM(SS2.TS), SUM(SS2.TAS), SUM(VS2.TV), SUM(VS2.TUV) 
+FROM  Contests C1
+LEFT JOIN Colleges C2
+ON C1.contest_id=C2.contest_id
+LEFT JOIN Challenges C3
+ON C2.college_id=C3.college_id
+LEFT JOIN (SELECT challenge_id,SUM(total_views) AS TV,SUM(total_unique_views) AS TUV 
+FROM View_Stats V GROUP BY challenge_id) AS VS2
+ON C3.challenge_id= VS2.challenge_id
+LEFT JOIN (SELECT challenge_id,SUM(total_submissions) AS TS,SUM(total_accepted_submissions) AS TAS 
+FROM Submission_Stats GROUP BY challenge_id) AS SS2
+ON C3.challenge_id= SS2.challenge_id
+GROUP BY C1.contest_id, C1.hacker_id, C1.name
+HAVING SUM(SS2.TS)>0 OR SUM(SS2.TAS)>0 OR SUM(VS2.TV)>0 OR SUM(VS2.TUV)>0
+ORDER BY C1.contest_id ASC
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Query an alphabetically ordered list of all names in OCCUPATIONS, immediately followed 
+by the first letter of each profession as a parenthetical (i.e.: enclosed in parentheses).
+For example: AnActorName(A), ADoctorName(D), AProfessorName(P), and ASingerName(S).
+
+
+SELECT CONCAT(Name,'(',LEFT(Occupation,1),')') FROM OCCUPATIONS ORDER BY Name ASC
+
+SELECT CONCAT('There are a total of ', COUNT(1)," ", Lower(Occupation), 's.') 
+FROM OCCUPATIONS GROUP BY Occupation ORDER BY COUNT(1),Occupation ASC
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Write a query identifying the type of each record in the TRIANGLES 
+table using its three side lengths. Output one of the following statements 
+for each record in the table:
+
+
+
+SELECT
+    CASE
+        WHEN A+B<=C OR A+C<=B OR B+C<=A THEN 'Not A Triangle'
+        WHEN A<>B AND B<>C AND A<>C THEN 'Scalene'
+        WHEN A=B AND B=C THEN 'Equilateral'
+        WHEN (A=B AND B!=C) OR (B=C AND B!=A) or (A=C AND B!=C)THEN 'Isosceles'
+        
+    END
+FROM TRIANGLES
+
+------------------------------------------------------------------------------------------------------------------------------------
+Write a query to find the node type of Binary Tree ordered by the value of the node. Output one of the following for each node:
+Root: If node is root node.
+Leaf: If node is leaf node.
+Inner: If node is neither root nor leaf node
+
+SELECT
+    CASE
+        WHEN a.P is NULL THEN CONCAT(a.N,' Root')
+        WHEN a.N in (SELECT P from BST) THEN CONCAT(a.N,' Inner')
+        ELSE CONCAT(a.N,' Leaf')
+    END 
+FROM BST a ORDER BY a.N ASC
+
+-------------------------------------------------------------------------------------------------------------------------------------
+Query the Manhattan Distance between points  and  and round it to a scale of  decimal places.
+
+# Min, Max aggregate function can be used without group by statement
+DECLARE @a as FLOAT, @b as FLOAT, @c as FLOAT, @d as FLOAT
+SELECT @a=MIN(LAT_N), @b=MIN(LONG_W), @c=MAX(LAT_N) , @d=MAX(LONG_W) FROM STATION 
+SELECT round((@c-@a)+(@d-@b),4)
+
+------------------------------------------------------------------------------------------------------------------------------------
+SELECT s.hacker_id, h.name FROM Challenges C
+INNER JOIN Difficulty D on C.difficulty_level=D.difficulty_level
+INNER JOIN Submissions S on C.challenge_id = S.challenge_id
+INNER JOIN Hackers h on h.hacker_id=s.hacker_id
+where s.score=d.score GROUP BY s.hacker_id, h.name HAVING COUNT(s.score)>1 ORDER BY COUNT(s.score) desc, s.hacker_id asc
